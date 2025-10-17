@@ -17,6 +17,38 @@ export default function App() {
     <Draggable id="draggable">Drag me</Draggable>
   );
 
+  const handleSaveLayout = () => {
+    const json = JSON.stringify(canvasItems, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'canvasLayout.json';
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+  const handleLoadLayout = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        if (Array.isArray(json)) {
+          setCanvasItems(json);
+        } else {
+          alert('Invalid layout file');
+        }
+      } catch (err) {
+        alert('Error parsing layout JSON');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <DndContext onDragEnd={handleDragEnd}>
     <div className="flex">
@@ -38,6 +70,25 @@ export default function App() {
           </div>
         ))}
         </div>
+        
+          {/* Save & Load buttons */}
+          <div className="mt-4 flex flex-col gap-2">
+            <button
+              onClick={handleSaveLayout}
+              className="border-2 border-black px-2 py-1 bg-gray-100"
+            >
+              Save Layout
+            </button>
+            <label className="border-2 border-black px-2 py-1 bg-gray-100 text-center cursor-pointer">
+              Load Layout
+              <input
+                type="file"
+                accept="application/json"
+                onChange={handleLoadLayout}
+                className="hidden"
+              />
+            </label>
+          </div>
       </div>
       <div className="h-screen w-3/5 border-black border-2">
           
