@@ -1,8 +1,28 @@
 import React, {useState} from 'react';
-import {DndContext} from '@dnd-kit/core';
+import {Draggable} from './components/Draggable'
+import { DndContext } from '@dnd-kit/core';
 
-import {Droppable} from './components/Droppable';
-import {Draggable} from './components/Draggable';
+// --- Type Definitions ---
+
+interface Tool {
+  id: string;
+  content: string;
+}
+
+interface CanvasItem {
+  id: string;
+  content: string;
+}
+
+interface DraggableProps {
+  id: string;
+  children: React.ReactNode;
+}
+
+interface DroppableProps {
+  id: string;
+  children: React.ReactNode;
+}
 
 export default function App() {
   const tools = [
@@ -11,7 +31,7 @@ export default function App() {
     { id: 'votegrity-logo', content: 'Votegrity Logo'},
     { id: 'candidate-body', content: 'Candidate Body'},
   ]
-  const [canvasItems, setCanvasItems] = useState([]);
+  const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
 
   const draggableMarkup = (
     <Draggable id="draggable">Drag me</Draggable>
@@ -29,16 +49,22 @@ export default function App() {
 
     URL.revokeObjectURL(url);
   };
-  const handleLoadLayout = (event) => {
-    const file = event.target.files[0];
+  const handleLoadLayout = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const json = JSON.parse(e.target.result);
+        const res = e.target?.result
+        if (typeof res !== 'string') {
+          alert('Failed to read file content.')
+          return;
+        }
+        const json = JSON.parse(res);
         if (Array.isArray(json)) {
-          setCanvasItems(json);
+          //problem with this line
+          // setCanvasItems(json)
         } else {
           alert('Invalid layout file');
         }
@@ -53,7 +79,8 @@ export default function App() {
     <DndContext onDragEnd={handleDragEnd}>
     <div className="flex">
       <div className="h-screen w-2/5 border-black border-2 p-4">
-        <select className="mx-auto h-min border-black border-2 w-full h-[2rem]" id="Templates" title="Templates">
+        <h2 className='text-center'>Palette/Core Navigation</h2>
+        <select className="border-black border-2 w-full text-lg h-[3rem]" id="Templates" title="Templates">
           <option selected disabled hidden>Templates</option>
           <option value="Ballot Template">Ballot Template</option>
           <option value="Notice Template">Notice Template</option>
@@ -75,7 +102,7 @@ export default function App() {
           <div className="mt-4 flex flex-col gap-2">
             <button
               onClick={handleSaveLayout}
-              className="border-2 border-black px-2 py-1 bg-gray-100"
+              className="border-2 border-black px-2 py-1 bg-white text-center cursor-pointer"
             >
               Save Layout
             </button>
@@ -97,7 +124,7 @@ export default function App() {
     </DndContext>
   );
 
-  function handleDragEnd(event) {
+  function handleDragEnd(event: any) {
     const { active, over } = event;
     //if dropped onto canvas
     if (over && over.id === 'canvas') {
